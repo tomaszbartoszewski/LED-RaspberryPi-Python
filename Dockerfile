@@ -1,4 +1,4 @@
-FROM resin/raspberry-pi-debian:jessie
+FROM resin/%%RESIN_MACHINE_NAME%%-python
 
 #switch on systemd init system in container
 ENV INITSYSTEM on
