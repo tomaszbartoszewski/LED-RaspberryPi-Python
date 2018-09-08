@@ -78,7 +78,14 @@ def receive_message_callback(message, counter):
     message_buffer = message.get_bytearray()
     size = len(message_buffer)
     print("Received Message [%d]:" % counter)
-    print("    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode("utf-8"), size))
+    command = message_buffer[:size].decode("utf-8")
+
+    if command == "turn on":
+        GPIO.output(config.GPIO_PIN_ADDRESS, GPIO.HIGH)
+    elif command == "turn off":
+        GPIO.output(config.GPIO_PIN_ADDRESS, GPIO.LOW)
+
+    print("    Data: <<<%s>>> & Size=%d" % (command, size))
     map_properties = message.properties()
     key_value_pair = map_properties.get_internals()
     print("    Properties: %s" % key_value_pair)
@@ -98,7 +105,6 @@ def send_confirmation_callback(message, result, user_context):
     print("    Properties: %s" % key_value_pair)
     SEND_CALLBACKS += 1
     print("    Total calls confirmed: %d" % SEND_CALLBACKS)
-    led_blink()
 
 
 def device_twin_callback(update_state, payload, user_context):
@@ -134,13 +140,6 @@ def device_method_callback(method_name, payload, user_context):
         device_method_return_value.response = "{ \"Response\": \"Successfully stopped\" }"
         return device_method_return_value
     return device_method_return_value
-
-
-# def blob_upload_conf_callback(result, user_context):
-#     global BLOB_CALLBACKS
-#     print("Blob upload confirmation[%d] received for message with result = %s" % (user_context, result))
-#     BLOB_CALLBACKS += 1
-#     print("    Total calls confirmed: %d" % BLOB_CALLBACKS)
 
 
 def iothub_client_init():
