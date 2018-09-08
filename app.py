@@ -38,12 +38,9 @@ TEMPERATURE_ALERT = 30.0
 # global counters
 RECEIVE_CALLBACKS = 0
 SEND_CALLBACKS = 0
-BLOB_CALLBACKS = 0
 TWIN_CALLBACKS = 0
 SEND_REPORTED_STATE_CALLBACKS = 0
 METHOD_CALLBACKS = 0
-EVENT_SUCCESS = "success"
-EVENT_FAILED = "failed"
 
 # chose HTTP, AMQP or MQTT as transport protocol
 PROTOCOL = IoTHubTransportProvider.MQTT
@@ -220,19 +217,6 @@ def iothub_client_sample_run():
 
     print_last_message_time(client)
 
-def led_blink():
-    GPIO.output(config.GPIO_PIN_ADDRESS, GPIO.HIGH)
-    time.sleep(config.BLINK_TIMESPAN / 1000.0)
-    GPIO.output(config.GPIO_PIN_ADDRESS, GPIO.LOW)
-
-def usage():
-    print("Usage: iothub_client_sample.py -p <protocol> -c <connectionstring>")
-    print("    protocol        : <amqp, amqp_ws, http, mqtt, mqtt_ws>")
-    print("    connectionstring: <HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>>")
-
-def parse_iot_hub_name():
-    m = re.search("HostName=(.*?)\.", CONNECTION_STRING)
-    return m.group(1)
 
 if __name__ == "__main__":
     print("\nPython %s" % sys.version)
