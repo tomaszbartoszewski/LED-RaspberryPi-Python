@@ -41,6 +41,7 @@ SEND_CALLBACKS = 0
 TWIN_CALLBACKS = 0
 SEND_REPORTED_STATE_CALLBACKS = 0
 METHOD_CALLBACKS = 0
+CLIENT = None
 
 # chose HTTP, AMQP or MQTT as transport protocol
 PROTOCOL = IoTHubTransportProvider.MQTT
@@ -79,8 +80,10 @@ def receive_message_callback(message, counter):
 
     if command == "turn on":
         GPIO.output(config.GPIO_PIN_ADDRESS, GPIO.HIGH)
+        send_led_status(True)
     elif command == "turn off":
         GPIO.output(config.GPIO_PIN_ADDRESS, GPIO.LOW)
+        send_led_status(False)
 
     print("    Data: <<<%s>>> & Size=%d" % (command, size))
     map_properties = message.properties()
@@ -173,10 +176,34 @@ def print_last_message_time(client):
             print(iothub_client_error)
 
 
+def send_led_status(is_led_on):
+    global MESSAGE_COUNT, CLIENT
+    # send a few messages every minute
+    print("IoTHubClient sending %d messages" % MESSAGE_COUNT)
+    msg_txt_formatted = "off"
+    if is_led_on:
+        msg_txt_formatted = "on"
+
+    message = IoTHubMessage(msg_txt_formatted)
+    # optional: assign ids
+    message.message_id = "message_%d" % MESSAGE_COUNT
+    message.correlation_id = "correlation_%d" % MESSAGE_COUNT
+    # optional: assign properties
+    prop_map = message.properties()
+    prop_map.add("telemetryType", "powerConsumer")
+
+    CLIENT.send_event_async(message, send_confirmation_callback, MESSAGE_COUNT)
+    print("IoTHubClient.send_event_async accepted message [%d] for transmission to IoT Hub." % MESSAGE_COUNT)
+
+    status = CLIENT.get_send_status()
+    print("Send status: %s" % status)
+    MESSAGE_COUNT += 1
+
 def iothub_client_sample_run():
+    global CLIENT
     try:
         client = iothub_client_init()
-
+        CLIENT = client
         if client.protocol == IoTHubTransportProvider.MQTT:
             print("IoTHubClient is reporting state")
             reported_state = "{\"newState\":\"standBy\"}"
