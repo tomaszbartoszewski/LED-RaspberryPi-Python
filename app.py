@@ -210,30 +210,10 @@ def iothub_client_sample_run():
             client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
 
         while True:
-            global MESSAGE_COUNT,MESSAGE_SWITCH
+            global MESSAGE_SWITCH
             if MESSAGE_SWITCH:
-                # send a few messages every minute
-                print("IoTHubClient sending %d messages" % MESSAGE_COUNT)
-                temperature = 21
-                humidity = 78
-                msg_txt_formatted = MSG_TXT % (
-                    temperature,
-                    humidity)
-                print(msg_txt_formatted)
-                message = IoTHubMessage(msg_txt_formatted)
-                # optional: assign ids
-                message.message_id = "message_%d" % MESSAGE_COUNT
-                message.correlation_id = "correlation_%d" % MESSAGE_COUNT
-                # optional: assign properties
-                prop_map = message.properties()
-                prop_map.add("temperatureAlert", "true" if temperature > TEMPERATURE_ALERT else "false")
-
-                client.send_event_async(message, send_confirmation_callback, MESSAGE_COUNT)
-                print("IoTHubClient.send_event_async accepted message [%d] for transmission to IoT Hub." % MESSAGE_COUNT)
-
-                status = client.get_send_status()
-                print("Send status: %s" % status)
-                MESSAGE_COUNT += 1
+                current_led_state = GPIO.input(config.GPIO_PIN_ADDRESS)
+                send_led_status(current_led_state)
             time.sleep(config.MESSAGE_TIMESPAN / 1000.0)
 
     except IoTHubError as iothub_error:

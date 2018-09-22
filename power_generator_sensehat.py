@@ -10,6 +10,9 @@ import sys
 from iothub_client import IoTHubClient, IoTHubClientError, IoTHubTransportProvider, IoTHubClientResult
 from iothub_client import IoTHubMessage, IoTHubMessageDispositionResult, IoTHubError, DeviceMethodReturnValue
 import re
+from sense_hat import SenseHat
+
+sense = SenseHat()
 
 # HTTP options
 # Because it can poll "after 9 seconds" polls will happen effectively
@@ -108,7 +111,7 @@ def print_last_message_time(client):
             print(iothub_client_error)
 
 
-def iothub_client_sample_run():
+def iothub_client_sample_run(current_energy_generation):
     try:
         client = iothub_client_init()
 
@@ -120,7 +123,7 @@ def iothub_client_sample_run():
         global MESSAGE_COUNT
         # send a few messages every minute
         print("IoTHubClient sending %d messages" % MESSAGE_COUNT)
-        msg_txt_formatted = str(power_readings)
+        msg_txt_formatted = str(current_energy_generation)
         message = IoTHubMessage(msg_txt_formatted)
         # optional: assign ids
         message.message_id = "message_%d" % MESSAGE_COUNT
@@ -147,9 +150,76 @@ def iothub_client_sample_run():
 
     print_last_message_time(client)
 
+X = [255, 0, 0]  # Red
+O = [255, 255, 255]  # White
+
+question_mark = [
+O, O, O, X, X, O, O, O,
+O, O, X, O, O, X, O, O,
+O, O, O, O, O, X, O, O,
+O, O, O, O, X, O, O, O,
+O, O, O, X, O, O, O, O,
+O, O, O, X, O, O, O, O,
+O, O, O, O, O, O, O, O,
+O, O, O, X, O, O, O, O
+]
+
+Empty = [0, 0, 0]
+Red = [255, 0, 0]
+
+
+
+# sense.set_pixels(question_mark)
+
+power_display_0 = []
+power_display_1 = []
+power_display_2 = []
+
+for i in range(8):
+    for j in range(8):
+        power_display_0.append(Empty)
+        power_display_2.append(Red)
+        if i > 1 and i < 6 and j > 1 and j < 6:
+            power_display_1.append(Red)
+        else:
+            power_display_1.append(Empty)
+
+def simulate_power_generation():
+    current_energy_generation = 0
+    value_changed = False
+    while True:
+        if value_changed:
+            value_changed = False
+            sense.clear()
+            if current_energy_generation == 0:
+                 sense.set_pixels(power_display_0)
+            elif current_energy_generation == 1:
+                 sense.set_pixels(power_display_1)
+            else:
+                 sense.set_pixels(power_display_2)
+            iothub_client_sample_run(current_energy_generation)
+
+        for event in sense.stick.get_events():
+            if event.action == "pressed":
+                if event.direction == "up" and current_energy_generation < 2:
+                    current_energy_generation = current_energy_generation + 1
+                    value_changed = True
+                elif event.direction == "down" and current_energy_generation > 0:
+                    current_energy_generation = current_energy_generation - 1
+                    value_changed = True
+                # elif event.direction == "left" and current_energy_generation != 0:
+                #     current_energy_generation = 0
+                #     value_changed = True
+                # elif event.direction == "right" and current_energy_generation != 2:
+                #     current_energy_generation = 2
+                #     value_changed = True
+            # print(event.direction, event.action)
+
 
 if __name__ == "__main__":
     print("\nPython %s" % sys.version)
     print("IoT Hub Client for Python")
 
-    iothub_client_sample_run()
+    iothub_client_sample_run(0.0)
+    simulate_power_generation()
+    # iothub_client_sample_run()
