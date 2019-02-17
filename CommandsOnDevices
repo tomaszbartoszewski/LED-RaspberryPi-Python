@@ -1,0 +1,14 @@
+sudo nano /etc/rc.local
+
+python3 /opt/presentation/app.py '' &
+
+python3 /opt/presentation/app.py '' &
+
+python3 /opt/presentation/power_generator_sensehat.py '' 0 &
+
+
+
+sudo mkdir /opt/presentation ; \
+sudo cp config.py /opt/presentation ; \
+sudo cp app.py /opt/presentation ; \
+sudo cp power_generator_sensehat.py /opt/presentation
