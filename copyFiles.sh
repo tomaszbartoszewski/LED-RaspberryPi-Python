@@ -4,3 +4,4 @@ Password=aa
 sshpass -p "$Password" scp app.py pi@$Ip:app.py
 sshpass -p "$Password" scp config.py pi@$Ip:config.py
 sshpass -p "$Password" scp power_generator_sensehat.py pi@$Ip:power_generator_sensehat.py
+sshpass -p "$Password" scp device_setup.sh pi@$Ip:device_setup.sh
